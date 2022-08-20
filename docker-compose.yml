@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  persistence-db:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ferri-log
+  cache-db:
+    image: skytable/sdb:v0.7.5
+    ports:
+      - 2003:2003
+    container_name: mysky
+    volumes:
+      - /home/falcon/skytable:/var/lib/skytable
