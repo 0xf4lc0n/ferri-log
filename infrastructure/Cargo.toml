@@ -10,8 +10,9 @@ anyhow = "1.0.58"
 application = {path = "../application"}
 async-trait = "0.1.57"
 ferri-log-core = {path = "../core"}
+futures = "0.3"
 lazy_static = "1.4.0"
-notify = "4.0.17"
+notify = {version = "5.0.0-pre.16"}
 serde_json = "1.0.83"
 skytable = "0.7.0-alpha.4"
 tracing = {version = "0.1.36", features = ["log"]}

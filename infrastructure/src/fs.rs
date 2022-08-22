@@ -2,13 +2,18 @@ use std::{
     fs::File,
     io::{Read, Seek, SeekFrom},
     path::PathBuf,
-    sync::{mpsc::channel, Arc},
-    time::Duration,
+    sync::Arc,
 };
+
+use futures::{
+    channel::mpsc::{channel, Receiver},
+    SinkExt, StreamExt,
+};
+use notify::{Config, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 
 use anyhow::{anyhow, bail, Result};
 use application::prelude::{Cache, DiskLogEntryDto, FileSystem};
-use notify::{watcher, DebouncedEvent, RecursiveMode, Watcher};
+use async_trait::async_trait;
 use skytable::{error::Error::SkyError, error::SkyhashError, RespCode};
 use tracing::{debug, error, info, instrument};
 
@@ -24,23 +29,51 @@ where
         LinuxFS { cache }
     }
 
-    fn handle_event(&self, event: DebouncedEvent) -> Result<()> {
+    fn async_watcher() -> notify::Result<(RecommendedWatcher, Receiver<notify::Result<Event>>)> {
+        let (mut tx, rx) = channel(1);
+
+        let watcher = RecommendedWatcher::new(
+            move |res| {
+                futures::executor::block_on(async {
+                    tx.send(res).await.unwrap();
+                })
+            },
+            Config::default(),
+        )?;
+
+        Ok((watcher, rx))
+    }
+
+    fn handle_event(&self, event: Event) -> Result<()> {
         info!("{event:?}");
 
-        match event {
-            DebouncedEvent::Write(path) => self.handle_file_change(path),
-            DebouncedEvent::Remove(path) => self
-                .cache
-                .del(&LinuxFS::<T>::path_buff_to_str(path)?)
-                .map(|_| ())
-                .map_err(|e| anyhow!(e)),
+        match event.kind {
+            EventKind::Modify(_) => self.on_files_modification(event.paths),
+            EventKind::Remove(_) => self.on_files_delete(event.paths),
             _ => Ok(()),
         }
     }
 
+    fn on_files_modification(&self, paths: Vec<PathBuf>) -> Result<()> {
+        for path in paths {
+            self.handle_file_change(path)?;
+        }
+
+        Ok(())
+    }
+
+    fn on_files_delete(&self, paths: Vec<PathBuf>) -> Result<()> {
+        for path in paths {
+            let path = Self::path_buff_to_string(path)?;
+            self.cache.del(&path)?;
+        }
+
+        Ok(())
+    }
+
     #[instrument(skip_all)]
     fn handle_file_change(&self, path: PathBuf) -> Result<()> {
-        let path = LinuxFS::<T>::path_buff_to_str(path)?;
+        let path = LinuxFS::<T>::path_buff_to_string(path)?;
         let mut file = File::open(&path)?;
         let mut buffer = String::new();
 
@@ -64,7 +97,7 @@ where
         Ok(())
     }
 
-    fn path_buff_to_str(path: PathBuf) -> Result<String> {
+    fn path_buff_to_string(path: PathBuf) -> Result<String> {
         match path.to_str() {
             Some(s) => Ok(s.to_owned()),
             None => bail!("Cannot obtain &str from PathBuf"),
@@ -82,21 +115,25 @@ where
     }
 }
 
+#[async_trait]
 impl<T> FileSystem for LinuxFS<T>
 where
-    T: Cache,
+    T: Cache + Send + Sync,
 {
-    fn watch_file(&self, path: &str) -> Result<()> {
-        let (tx, rx) = channel();
-        let mut watcher = watcher(tx, Duration::from_secs(1))?;
+    async fn watch_file(&self, path: &str) -> Result<()> {
+        let (mut watcher, mut rx) = Self::async_watcher()?;
 
-        watcher.watch(path, RecursiveMode::Recursive)?;
+        watcher.watch(path.as_ref(), RecursiveMode::Recursive)?;
 
-        loop {
-            match rx.recv() {
+        info!("Watching for folder '{path}' started");
+
+        while let Some(res) = rx.next().await {
+            match res {
                 Ok(event) => self.handle_event(event)?,
-                Err(e) => error!("Cannot watch '{path}': {e}"),
+                Err(e) => error!("Watch error: {:?}", e),
             }
         }
+
+        Ok(())
     }
 }
