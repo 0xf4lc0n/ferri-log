@@ -7,8 +7,7 @@ use std::{
 };
 
 use anyhow::{anyhow, bail, Result};
-use application::dto::disk_log_entry_dto;
-use application::interfaces::{cache::Cache, fs::FileSystem};
+use application::prelude::{Cache, DiskLogEntryDto, FileSystem};
 use notify::{watcher, DebouncedEvent, RecursiveMode, Watcher};
 use skytable::{error::Error::SkyError, error::SkyhashError, RespCode};
 use tracing::{debug, error, info, instrument};
@@ -76,8 +75,7 @@ where
         for line in buff.lines() {
             debug!("Current line: {line}");
 
-            let log_entry =
-                serde_json::from_str::<disk_log_entry_dto::DiskLogEntryDto>(line).unwrap();
+            let log_entry = serde_json::from_str::<DiskLogEntryDto>(line).unwrap();
 
             debug!("LogEntry: {log_entry:?}");
         }

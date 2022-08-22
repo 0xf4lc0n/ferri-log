@@ -1,5 +1,5 @@
 use anyhow::Result;
-use application::prelude::*;
+use application::prelude::{DiskLogEntryDto, LogRepository};
 use async_trait::async_trait;
 use ferri_log_core::prelude::LogEntry;
 use sqlx::{types::chrono, PgPool};

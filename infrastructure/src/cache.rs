@@ -1,4 +1,4 @@
-use application::interfaces::cache::Cache;
+use application::prelude::Cache;
 use skytable::{
     actions::Actions,
     sync::Connection,

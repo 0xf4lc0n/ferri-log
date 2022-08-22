@@ -1,9 +1,6 @@
 use anyhow::Result;
 use application::prelude::{DiskLogEntryDto, LogRepository};
-use infrastructure::{
-    prelude::PgLogRepo,
-    telemetry::{get_subscriber, init_subscriber},
-};
+use infrastructure::prelude::{get_subscriber, init_subscriber, PgLogRepo};
 use once_cell::sync::Lazy;
 use server::configuration::{get_configuration, DatabaseSettings};
 use sqlx::{migrate::Migrator, types::Uuid, Connection, Executor, PgConnection, PgPool};

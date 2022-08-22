@@ -1,8 +1,7 @@
 mod configuration;
 
-use application::interfaces::fs::FileSystem;
-use infrastructure::cache;
-use infrastructure::fs;
+use application::prelude::FileSystem;
+use infrastructure::prelude::{LinuxFS, SkyTableCache};
 use infrastructure::telemetry;
 use std::sync::Arc;
 use std::thread;
@@ -13,8 +12,8 @@ fn main() {
 
     let config = configuration::get_configuration().unwrap();
 
-    let cache = Arc::new(cache::SkyTableCache::new("127.0.0.1", 2003));
-    let file_system = Arc::new(fs::LinuxFS::new(cache));
+    let cache = Arc::new(SkyTableCache::new("127.0.0.1", 2003));
+    let file_system = Arc::new(LinuxFS::new(cache));
 
     let fs_handle = {
         let fs = file_system.clone();
