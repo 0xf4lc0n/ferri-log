@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     application::prelude::{DiskLogEntryDto, LogRepository},
-    domain::prelude::LogEntry,
+    domain::prelude::{LogEntry, ReposiotryResult},
 };
 
 pub struct PgLogRepo {
@@ -21,33 +21,25 @@ impl PgLogRepo {
 #[async_trait]
 impl LogRepository for PgLogRepo {
     #[instrument(name = "Retrieving one log entry from the database", skip(self))]
-    async fn get_log_by_id(&self, id: uuid::Uuid) -> anyhow::Result<LogEntry> {
+    async fn get_log_by_id(&self, id: uuid::Uuid) -> ReposiotryResult<LogEntry> {
         let log = sqlx::query_as!(LogEntry, "SELECT * FROM logs WHERE id = $1", id)
             .fetch_one(&self.pool)
-            .await
-            .map_err(|e| {
-                tracing::error!("Failed to execute query: {e:?}");
-                e
-            })?;
+            .await?;
 
         Ok(log)
     }
 
     #[instrument(name = "Retrieving all logs from the database", skip_all)]
-    async fn get_all_logs(&self) -> anyhow::Result<Vec<LogEntry>> {
+    async fn get_all_logs(&self) -> ReposiotryResult<Vec<LogEntry>> {
         let logs = sqlx::query_as!(LogEntry, "SELECT * FROM logs")
             .fetch_all(&self.pool)
-            .await
-            .map_err(|e| {
-                tracing::error!("Failed to execute query: {e:?}");
-                e
-            })?;
+            .await?;
 
         Ok(logs)
     }
 
     #[instrument(name = "Creating log entry in the database", skip(self))]
-    async fn create_log(&self, dto: DiskLogEntryDto) -> anyhow::Result<Uuid> {
+    async fn create_log(&self, dto: DiskLogEntryDto) -> ReposiotryResult<Uuid> {
         let date = chrono::DateTime::parse_from_rfc3339(&dto.timestamp)?;
         let id = Uuid::new_v4();
 
@@ -66,24 +58,16 @@ impl LogRepository for PgLogRepo {
             dto.message,
         )
         .execute(&self.pool)
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to execute query: {e:?}");
-            e
-        })?;
+        .await?;
 
         Ok(id)
     }
 
     #[instrument(name = "Deleting log entry from the database", skip(self))]
-    async fn delete_log(&self, id: uuid::Uuid) -> anyhow::Result<()> {
+    async fn delete_log(&self, id: uuid::Uuid) -> ReposiotryResult<()> {
         sqlx::query!("DELETE FROM logs WHERE id = $1", id)
             .execute(&self.pool)
-            .await
-            .map_err(|e| {
-                tracing::error!("Failed to execute query: {e:?}");
-                e
-            })?;
+            .await?;
 
         Ok(())
     }
