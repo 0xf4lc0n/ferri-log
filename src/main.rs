@@ -36,8 +36,4 @@ async fn main() -> Result<()> {
         .expect("Failed to start HTTP server");
 
     Ok(())
-
-    // loop {
-    //     tokio::time::sleep(Duration::from_secs(1)).await;
-    // }
 }
