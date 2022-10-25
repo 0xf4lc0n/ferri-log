@@ -1,11 +1,11 @@
 use async_trait::async_trait;
-use sqlx::{types::chrono, PgPool};
-use tracing::instrument;
+use sqlx::{postgres::PgRow, types::chrono, PgPool, Row};
+use tracing::{debug, instrument};
 use uuid::Uuid;
 
 use crate::{
     application::prelude::{DiskLogEntryDto, LogRepository},
-    domain::prelude::{LogEntry, ReposiotryResult},
+    domain::prelude::{LogEntry, LogEntryFilter, LogEntryFilterQueryBuilder, ReposiotryResult},
 };
 
 pub struct PgLogRepo {
@@ -34,6 +34,24 @@ impl LogRepository for PgLogRepo {
         let logs = sqlx::query_as!(LogEntry, "SELECT * FROM logs")
             .fetch_all(&self.pool)
             .await?;
+
+        Ok(logs)
+    }
+
+    #[instrument(
+        name = "Retrieving logs matching the filter from the database",
+        skip(self)
+    )]
+    async fn get_logs_by_filter(&self, filter: LogEntryFilter) -> ReposiotryResult<Vec<LogEntry>> {
+        let mut query_builder = LogEntryFilterQueryBuilder::new(filter);
+        let query = query_builder.to_sql_query();
+        // debug!("Sqlx query: {}", &query);
+
+        let logs = query.fetch_all(&self.pool).await?;
+
+        // let logs = sqlx::query_as::<_, LogEntry>(&query)
+        //     .fetch_all(&self.pool)
+        //     .await?;
 
         Ok(logs)
     }

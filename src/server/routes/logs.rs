@@ -1,6 +1,6 @@
 use crate::{
     application::prelude::LogRepository,
-    domain::prelude::{LogEntry, RepositoryError},
+    domain::prelude::{LogEntry, LogEntryFilter, RepositoryError},
     infrastructure::prelude::PgLogRepo,
 };
 use actix_web::{web, HttpResponse, Responder};
@@ -28,4 +28,16 @@ pub async fn get_log_by_id(
             HttpResponse::InternalServerError().finish()
         }
     }
+}
+
+pub async fn get_logs_by_filter(
+    filters: web::Query<LogEntryFilter>,
+    log_repo: web::Data<PgLogRepo>,
+) -> impl Responder {
+    let logs = log_repo
+        .get_logs_by_filter(filters.into_inner())
+        .await
+        .expect("Cannot get filtred logs");
+
+    HttpResponse::Ok().json(logs)
 }
