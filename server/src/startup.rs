@@ -4,13 +4,12 @@ use actix_web::{
     App, HttpServer,
 };
 use anyhow::Result;
+use infrastructure::prelude::PgLogRepo;
 use sqlx::PgPool;
 use std::net::TcpListener;
 use tracing_actix_web::TracingLogger;
 
-use crate::infrastructure::prelude::PgLogRepo;
-
-use super::routes::{get_all_logs, get_log_by_id, get_logs_by_filter, health_check};
+use crate::routes::{get_all_logs, get_log_by_id, get_logs_by_filter, health_check};
 
 pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server> {
     let log_repo = Data::new(PgLogRepo::new(db_pool));

@@ -1,5 +1,5 @@
 use super::disk_log_entry_dto::DiskLogEntryDto;
-use crate::domain::prelude::LogEntry;
+use domain::prelude::LogEntry;
 
 impl From<LogEntry> for DiskLogEntryDto {
     fn from(log: LogEntry) -> Self {

@@ -4,7 +4,7 @@ use skytable::{
     types::{FromSkyhashBytes, IntoSkyhashBytes},
 };
 
-use crate::application::prelude::Cache;
+use application::prelude::Cache;
 
 pub struct SkyTableCache<'a> {
     host: &'a str,

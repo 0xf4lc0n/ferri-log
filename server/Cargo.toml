@@ -1,0 +1,46 @@
+[package]
+edition = "2021"
+name = "server"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = "4"
+anyhow = "1.0.58"
+application = {path = "../application"}
+async-trait = "0.1.57"
+chrono = {version = "0.4.22", features = ["serde"]}
+config = "0.13.2"
+domain = {path = "../domain"}
+infrastructure = {path = "../infrastructure"}
+lazy_static = "1.4.0"
+notify = {version = "5.0.0"}
+once_cell = "1.13.1"
+regex = "1.6"
+secrecy = {version = "0.8", features = ["serde"]}
+serde = {version = "1.0.143", features = ["derive"]}
+serde-aux = "3"
+serde_json = "1.0.83"
+skytable = "0.7.0-alpha.4"
+tokio = {version = "1", features = ["full"]}
+tracing = {version = "0.1.36", features = ["log"]}
+tracing-actix-web = "0.6"
+tracing-log = "0.1.3"
+tracing-subscriber = {version = "0.3.15", features = ["registry", "env-filter"]}
+uuid = {version = "1.1.2", features = ["v4", "serde"]}
+
+[dev-dependencies]
+
+[dependencies.sqlx]
+default-features = false
+features = [
+  "runtime-tokio-native-tls",
+  "macros",
+  "postgres",
+  "uuid",
+  "chrono",
+  "migrate",
+  "offline",
+]
+version = "0.6.1"

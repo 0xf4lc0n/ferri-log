@@ -1,12 +1,9 @@
+use application::prelude::{DiskLogEntryDto, LogRepository};
 use async_trait::async_trait;
+use domain::prelude::{LogEntry, LogEntryFilter, LogEntryFilterQueryBuilder, ReposiotryResult};
 use sqlx::{postgres::PgRow, types::chrono, PgPool, Row};
 use tracing::{debug, instrument};
 use uuid::Uuid;
-
-use crate::{
-    application::prelude::{DiskLogEntryDto, LogRepository},
-    domain::prelude::{LogEntry, LogEntryFilter, LogEntryFilterQueryBuilder, ReposiotryResult},
-};
 
 pub struct PgLogRepo {
     pool: PgPool,

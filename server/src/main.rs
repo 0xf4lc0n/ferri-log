@@ -1,16 +1,15 @@
-mod application;
-mod domain;
-mod infrastructure;
-mod server;
-
-use std::{net::TcpListener, sync::Arc};
+mod configuration;
+mod routes;
+mod startup;
 
 use anyhow::Result;
-use ferri_log::server::{configuration, startup::run};
 use infrastructure::prelude::{
     get_subscriber, init_subscriber, watch_dir, LinuxFS, PgLogRepo, SkyTableCache,
 };
+use std::{net::TcpListener, sync::Arc};
+
 use sqlx::postgres::PgPoolOptions;
+use startup::run;
 
 #[tokio::main]
 async fn main() -> Result<()> {

@@ -1,9 +1,7 @@
-use crate::{
-    application::prelude::LogRepository,
-    domain::prelude::{LogEntry, LogEntryFilter, RepositoryError},
-    infrastructure::prelude::PgLogRepo,
-};
 use actix_web::{web, HttpResponse, Responder};
+use application::prelude::LogRepository;
+use domain::prelude::{LogEntry, LogEntryFilter, RepositoryError};
+use infrastructure::prelude::PgLogRepo;
 use tracing::{error, info};
 use uuid::Uuid;
 

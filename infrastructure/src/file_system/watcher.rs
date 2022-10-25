@@ -1,10 +1,9 @@
 use anyhow::Result;
+use application::prelude::FileSystem;
 use notify::{Config, Event, INotifyWatcher, RecommendedWatcher, RecursiveMode, Watcher};
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use tracing::{error, info};
-
-use crate::application::prelude::FileSystem;
 
 pub fn async_watcher() -> notify::Result<(
     RecommendedWatcher,

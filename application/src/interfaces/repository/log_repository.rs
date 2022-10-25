@@ -1,8 +1,6 @@
-use crate::{
-    application::prelude::DiskLogEntryDto,
-    domain::prelude::{LogEntry, LogEntryFilter, ReposiotryResult},
-};
+use crate::dto::disk_log_entry_dto::DiskLogEntryDto;
 use async_trait::async_trait;
+use domain::prelude::{LogEntry, LogEntryFilter, ReposiotryResult};
 use uuid::Uuid;
 
 #[async_trait]
