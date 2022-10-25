@@ -1,8 +1,8 @@
 use application::prelude::{DiskLogEntryDto, LogRepository};
 use async_trait::async_trait;
 use domain::prelude::{LogEntry, LogEntryFilter, LogEntryFilterQueryBuilder, ReposiotryResult};
-use sqlx::{postgres::PgRow, types::chrono, PgPool, Row};
-use tracing::{debug, instrument};
+use sqlx::{types::chrono, PgPool};
+use tracing::instrument;
 use uuid::Uuid;
 
 pub struct PgLogRepo {
@@ -42,13 +42,8 @@ impl LogRepository for PgLogRepo {
     async fn get_logs_by_filter(&self, filter: LogEntryFilter) -> ReposiotryResult<Vec<LogEntry>> {
         let mut query_builder = LogEntryFilterQueryBuilder::new(filter);
         let query = query_builder.to_sql_query();
-        // debug!("Sqlx query: {}", &query);
 
         let logs = query.fetch_all(&self.pool).await?;
-
-        // let logs = sqlx::query_as::<_, LogEntry>(&query)
-        //     .fetch_all(&self.pool)
-        //     .await?;
 
         Ok(logs)
     }
