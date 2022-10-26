@@ -1,0 +1,26 @@
+[package]
+edition = "2021"
+name = "web_app"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# Yew stack
+yew = "0.19.3"
+yew-router = "0.16.0"
+# Fetching data
+gloo-net = "0.2"
+serde = {version = "1.0.143", features = ["derive"]}
+wasm-bindgen-futures = "0.4"
+# Domain
+chrono = {version = "0.4.22", features = ["serde"]}
+getrandom = {version = "0.2", features = ["js"]}
+serde_json = "1.0.83"
+uuid = {version = "1.1.2", features = ["v4", "serde"]}
+# Logging
+log = "0.4.17"
+wasm-logger = "0.2.0"
+# Interop
+wasm-bindgen = "0.2.83"
+web-sys = "0.3.60"
