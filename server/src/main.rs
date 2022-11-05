@@ -6,14 +6,14 @@ use anyhow::Result;
 use infrastructure::prelude::{
     get_subscriber, init_subscriber, watch_dir, LinuxFS, PgLogRepo, SkyTableCache,
 };
-use std::{net::TcpListener, sync::Arc};
+use std::sync::Arc;
 
 use sqlx::postgres::PgPoolOptions;
 use startup::run;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let subscriber = get_subscriber("zero2prod".into(), "debug".into(), std::io::stdout);
+    let subscriber = get_subscriber("zero2prod".into(), "error".into(), std::io::stdout);
     init_subscriber(subscriber);
 
     let config = configuration::get_configuration().unwrap();
@@ -28,9 +28,7 @@ async fn main() -> Result<()> {
 
     let address = format!("{}:{}", config.application.host, config.application.port);
 
-    let listener = TcpListener::bind(address)?;
-
-    run(listener, connection_pool)?
+    run(address, connection_pool, &config)?
         .await
         .expect("Failed to start HTTP server");
 
