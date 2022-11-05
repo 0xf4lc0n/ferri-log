@@ -18,6 +18,7 @@ use tracing_actix_web::TracingLogger;
 
 use crate::{
     configuration::Settings,
+    middlewares::{get_client_cert, Auth},
     routes::{get_all_logs, get_log_by_id, get_logs_by_filter, health_check},
 };
 
@@ -29,12 +30,14 @@ pub fn run(address: String, db_pool: PgPool, settings: &Settings) -> Result<Serv
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
+            .wrap(Auth)
             .route("/health_check", web::get().to(health_check))
             .route("/logs", web::get().to(get_all_logs))
             .route("/logs/filtered", web::get().to(get_logs_by_filter))
             .route("/logs/{log_id}", web::get().to(get_log_by_id))
             .app_data(log_repo.clone())
     })
+    .on_connect(get_client_cert)
     .bind_openssl(address, ssl_builder)?
     .run();
 
@@ -56,7 +59,6 @@ fn setup_certificate_auth(settings: &Settings) -> Result<SslAcceptorBuilder> {
 
     let mut verify_mode = SslVerifyMode::empty();
     verify_mode.set(SslVerifyMode::PEER, true);
-    verify_mode.set(SslVerifyMode::FAIL_IF_NO_PEER_CERT, true);
     builder.set_verify(verify_mode);
 
     builder.set_session_cache_mode(SslSessionCacheMode::OFF);

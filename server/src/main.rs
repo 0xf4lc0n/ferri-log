@@ -1,4 +1,5 @@
 mod configuration;
+mod middlewares;
 mod routes;
 mod startup;
 
