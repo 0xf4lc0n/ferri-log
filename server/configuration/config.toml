@@ -1,7 +1,12 @@
 [application]
 folder_to_watch = "/var/log/remote"
 host = "localhost"
-port = 8080
+port = 8443
+
+[certificates]
+ca_cert_path = "certs/ca/rootCA.pem"
+server_cert_path = "certs/server/ferri-log.com.pem"
+server_key_path = "certs/server/ferri-log.com-key.pem"
 
 [database]
 database_name = "ferri-log"

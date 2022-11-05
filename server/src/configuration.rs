@@ -11,6 +11,7 @@ use sqlx::{
 pub struct Settings {
     pub application: ApplicationSettings,
     pub database: DatabaseSettings,
+    pub certificates: CertificateSettings,
 }
 
 #[derive(serde::Deserialize)]
@@ -69,4 +70,11 @@ pub fn get_configuration() -> Result<Settings> {
     config
         .try_deserialize()
         .map_err(|err| anyhow!("Cannot deserialize Config to Settings struct {err:?}"))
+}
+
+#[derive(serde::Deserialize)]
+pub struct CertificateSettings {
+    pub ca_cert_path: String,
+    pub server_cert_path: String,
+    pub server_key_path: String,
 }
