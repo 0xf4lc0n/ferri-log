@@ -1,5 +1,5 @@
 [application]
-folder_to_watch = "/var/log/remote/DESKTOP-J7C3HE9"
+folder_to_watch = "/var/log/remote"
 host = "localhost"
 port = 8080
 
