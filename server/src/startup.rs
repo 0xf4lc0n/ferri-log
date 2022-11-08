@@ -1,3 +1,4 @@
+use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::{
     dev::Server,
     web::{self, Data},
@@ -27,9 +28,16 @@ pub fn run(address: String, db_pool: PgPool, settings: &Settings) -> Result<Serv
 
     let ssl_builder = setup_certificate_auth(settings)?;
 
+    let governor_conf = GovernorConfigBuilder::default()
+        .per_second(10)
+        .burst_size(10)
+        .finish()
+        .unwrap();
+
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
+            .wrap(Governor::new(&governor_conf))
             .wrap(Auth)
             .route("/health_check", web::get().to(health_check))
             .route("/logs", web::get().to(get_all_logs))
