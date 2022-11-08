@@ -2,6 +2,7 @@ use actix_tls::accept::openssl::TlsStream;
 use actix_web::{
     body::EitherBody,
     dev::{self, Extensions, Service, ServiceRequest, ServiceResponse, Transform},
+    rt::net::TcpStream,
     Error, HttpResponse,
 };
 use futures_util::future::LocalBoxFuture;
@@ -9,7 +10,6 @@ use openssl::x509::X509;
 use std::{
     any::Any,
     future::{ready, Ready},
-    net::TcpStream,
 };
 use tracing::debug;
 
