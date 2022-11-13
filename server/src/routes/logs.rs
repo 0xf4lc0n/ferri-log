@@ -19,8 +19,6 @@ pub async fn get_all_logs(
         .await
         .expect("Cannot get blacklist");
 
-    println!("Blacklisted: {:?}", blacklisted);
-
     let blacklisted = BTreeSet::from_iter(blacklisted);
 
     logs.retain(|l| !blacklisted.iter().any(|blk_log| blk_log == l));
@@ -48,11 +46,21 @@ pub async fn get_log_by_id(
 pub async fn get_logs_by_filter(
     filters: web::Query<LogEntryFilter>,
     log_repo: web::Data<PgLogRepo>,
+    blklst_repo: web::Data<PgBlkLstRepo>,
 ) -> impl Responder {
-    let logs = log_repo
+    let mut logs = log_repo
         .get_logs_by_filter(filters.into_inner())
         .await
         .expect("Cannot get filtred logs");
+
+    let blacklisted = blklst_repo
+        .get_all_entries()
+        .await
+        .expect("Cannot get blacklist");
+
+    let blacklisted = BTreeSet::from_iter(blacklisted);
+
+    logs.retain(|l| !blacklisted.iter().any(|blk_log| blk_log == l));
 
     HttpResponse::Ok().json(logs)
 }
