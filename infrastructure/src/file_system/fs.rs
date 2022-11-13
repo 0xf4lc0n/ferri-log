@@ -1,7 +1,7 @@
 use std::{
     fs::File,
     io::{Read, Seek, SeekFrom},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 use anyhow::{anyhow, bail, Result};
@@ -38,7 +38,7 @@ where
 
     fn on_files_delete(&self, paths: Vec<PathBuf>) -> Result<()> {
         for path in paths {
-            let path = path_buff_to_string(path)?;
+            let path = path_buff_to_string(&path)?;
             self.cache.del(&path)?;
         }
 
@@ -47,7 +47,12 @@ where
 
     #[instrument(skip_all)]
     async fn handle_file_change(&self, path: PathBuf) -> Result<()> {
-        let path = path_buff_to_string(path)?;
+        if !path.is_file() {
+            debug!("{} isn't a file", path.to_str().unwrap());
+            return Ok(());
+        }
+
+        let path = path_buff_to_string(&path)?;
         let mut file = File::open(&path)?;
         let mut buffer = String::new();
 
@@ -100,9 +105,20 @@ where
     }
 }
 
-fn path_buff_to_string(path: PathBuf) -> Result<String> {
+fn path_buff_to_string(path: &Path) -> Result<String> {
     match path.to_str() {
         Some(s) => Ok(s.to_owned()),
         None => bail!("Cannot obtain &str from PathBuf"),
+    }
+}
+
+#[allow(dead_code)]
+fn get_file_name(path: &Path) -> Result<&str> {
+    match path.file_name() {
+        Some(name) => match name.to_str() {
+            Some(name) => Ok(name),
+            None => bail!("File name failed UTF-8 validity check"),
+        },
+        None => bail!("Cannot extract file name because path is invalid"),
     }
 }
