@@ -5,7 +5,7 @@ use actix_web::{
     App, HttpServer,
 };
 use anyhow::Result;
-use infrastructure::prelude::PgLogRepo;
+use infrastructure::prelude::{PgBlkLstRepo, PgLogRepo};
 use openssl::{
     ssl::{
         SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod, SslSessionCacheMode,
@@ -20,11 +20,15 @@ use tracing_actix_web::TracingLogger;
 use crate::{
     configuration::Settings,
     middlewares::{get_client_cert, Auth},
-    routes::{get_all_logs, get_log_by_id, get_logs_by_filter, health_check},
+    routes::{
+        add_to_blacklist, delete_entry_from_blacklist, get_all_logs, get_blacklist,
+        get_blacklist_entry_by_id, get_log_by_id, get_logs_by_filter, health_check,
+    },
 };
 
 pub fn run(address: String, db_pool: PgPool, settings: &Settings) -> Result<Server> {
-    let log_repo = Data::new(PgLogRepo::new(db_pool));
+    let log_repo = Data::new(PgLogRepo::new(db_pool.clone()));
+    let blacklist = Data::new(PgBlkLstRepo::new(db_pool));
 
     let ssl_builder = setup_certificate_auth(settings)?;
 
@@ -40,10 +44,21 @@ pub fn run(address: String, db_pool: PgPool, settings: &Settings) -> Result<Serv
             .wrap(Governor::new(&governor_conf))
             .wrap(Auth)
             .route("/health_check", web::get().to(health_check))
+            .route("/logs/blacklist", web::post().to(add_to_blacklist))
+            .route("/logs/blacklist", web::get().to(get_blacklist))
+            .route(
+                "/logs/blacklist/{entry_id}",
+                web::delete().to(delete_entry_from_blacklist),
+            )
+            .route(
+                "/logs/blacklist{entry_id}",
+                web::get().to(get_blacklist_entry_by_id),
+            )
             .route("/logs", web::get().to(get_all_logs))
             .route("/logs/filtered", web::get().to(get_logs_by_filter))
             .route("/logs/{log_id}", web::get().to(get_log_by_id))
             .app_data(log_repo.clone())
+            .app_data(blacklist.clone())
     })
     .on_connect(get_client_cert)
     .bind_openssl(address, ssl_builder)?

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone, sqlx::FromRow)]
+#[derive(Serialize, Deserialize, Debug, Clone, sqlx::FromRow, PartialEq, Eq)]
 pub struct LogEntry {
     pub id: uuid::Uuid,
     pub timestamp: chrono::DateTime<chrono::Utc>,

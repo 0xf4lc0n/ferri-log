@@ -1,13 +1,30 @@
+use std::collections::BTreeSet;
+
 use actix_web::{web, HttpResponse, Responder};
-use application::prelude::LogRepository;
+use application::prelude::{BlacklistRepository, LogRepository};
 use domain::prelude::{LogEntry, LogEntryFilter, RepositoryError};
-use infrastructure::prelude::PgLogRepo;
+use infrastructure::prelude::{PgBlkLstRepo, PgLogRepo};
 use tracing::{error, info};
 use uuid::Uuid;
 
-#[tracing::instrument(name = "Get all logs", skip(log_repo))]
-pub async fn get_all_logs(log_repo: web::Data<PgLogRepo>) -> web::Json<Vec<LogEntry>> {
-    let logs = log_repo.get_all_logs().await.expect("Cannot get all logs");
+#[tracing::instrument(name = "Get all logs", skip(log_repo, blklst_repo))]
+pub async fn get_all_logs(
+    log_repo: web::Data<PgLogRepo>,
+    blklst_repo: web::Data<PgBlkLstRepo>,
+) -> web::Json<Vec<LogEntry>> {
+    let mut logs = log_repo.get_all_logs().await.expect("Cannot get all logs");
+
+    let blacklisted = blklst_repo
+        .get_all_entries()
+        .await
+        .expect("Cannot get blacklist");
+
+    println!("Blacklisted: {:?}", blacklisted);
+
+    let blacklisted = BTreeSet::from_iter(blacklisted);
+
+    logs.retain(|l| !blacklisted.iter().any(|blk_log| blk_log == l));
+
     web::Json(logs)
 }
 
