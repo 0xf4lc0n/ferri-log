@@ -21,7 +21,7 @@ async fn main() -> Result<()> {
 
     let connection_pool = PgPoolOptions::new().connect_lazy_with(config.database.with_db());
 
-    let cache = SkyTableCache::new("127.0.0.1", 2003);
+    let cache = SkyTableCache::new(&config.cache.host, config.cache.port);
     let log_repo = PgLogRepo::new(connection_pool.clone());
     let file_system = Arc::new(LinuxFS::new(cache, log_repo));
 

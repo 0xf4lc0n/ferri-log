@@ -33,8 +33,8 @@ pub fn run(address: String, db_pool: PgPool, settings: &Settings) -> Result<Serv
     let ssl_builder = setup_certificate_auth(settings)?;
 
     let governor_conf = GovernorConfigBuilder::default()
-        .per_second(10)
-        .burst_size(10)
+        .per_second(settings.application.one_request_replenishment_time)
+        .burst_size(settings.application.request_pool)
         .finish()
         .unwrap();
 

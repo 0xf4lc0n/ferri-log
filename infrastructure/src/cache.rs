@@ -6,20 +6,23 @@ use skytable::{
 
 use application::prelude::Cache;
 
-pub struct SkyTableCache<'a> {
-    host: &'a str,
+pub struct SkyTableCache {
+    host: String,
     port: u16,
 }
 
-impl<'a> SkyTableCache<'a> {
-    pub fn new(host: &'a str, port: u16) -> Self {
-        SkyTableCache { host, port }
+impl SkyTableCache {
+    pub fn new(host: &str, port: u16) -> Self {
+        SkyTableCache {
+            host: host.into(),
+            port,
+        }
     }
 }
 
-impl<'a> Cache for SkyTableCache<'a> {
+impl Cache for SkyTableCache {
     fn get<T: FromSkyhashBytes>(&self, key: &str) -> Result<T, skytable::error::Error> {
-        Connection::new(self.host, self.port)?.get(key)
+        Connection::new(&self.host, self.port)?.get(key)
     }
 
     fn set<T: IntoSkyhashBytes>(
@@ -27,7 +30,7 @@ impl<'a> Cache for SkyTableCache<'a> {
         key: &str,
         value: T,
     ) -> Result<bool, skytable::error::Error> {
-        Connection::new(self.host, self.port)?.set(key, value)
+        Connection::new(&self.host, self.port)?.set(key, value)
     }
 
     fn update<T: IntoSkyhashBytes>(
@@ -35,10 +38,10 @@ impl<'a> Cache for SkyTableCache<'a> {
         key: &str,
         value: T,
     ) -> Result<(), skytable::error::Error> {
-        Connection::new(self.host, self.port)?.update(key, value)
+        Connection::new(&self.host, self.port)?.update(key, value)
     }
 
     fn del(&self, key: &str) -> Result<u64, skytable::error::Error> {
-        Connection::new(self.host, self.port)?.del(key)
+        Connection::new(&self.host, self.port)?.del(key)
     }
 }

@@ -1,7 +1,9 @@
 [application]
 folder_to_watch = "/var/log/remote"
 host = "localhost"
+one_request_replenishment_time = 5
 port = 8443
+request_pool = 10
 
 [certificates]
 ca_cert_path = "certs/ca/rootCA.pem"
@@ -15,3 +17,7 @@ password = "postgres"
 port = 5432
 require_ssl = false
 username = "postgres"
+
+[cache]
+host = "localhost"
+port = 2003

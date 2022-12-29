@@ -12,6 +12,7 @@ pub struct Settings {
     pub application: ApplicationSettings,
     pub database: DatabaseSettings,
     pub certificates: CertificateSettings,
+    pub cache: CacheSettings,
 }
 
 #[derive(serde::Deserialize)]
@@ -19,6 +20,8 @@ pub struct ApplicationSettings {
     pub folder_to_watch: String,
     pub host: String,
     pub port: u16,
+    pub request_pool: u32,
+    pub one_request_replenishment_time: u64,
 }
 
 #[derive(serde::Deserialize)]
@@ -77,4 +80,10 @@ pub struct CertificateSettings {
     pub ca_cert_path: String,
     pub server_cert_path: String,
     pub server_key_path: String,
+}
+
+#[derive(serde::Deserialize)]
+pub struct CacheSettings {
+    pub host: String,
+    pub port: u16,
 }
