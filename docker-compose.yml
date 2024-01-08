@@ -14,4 +14,5 @@ services:
       - 2003:2003
     container_name: mysky
     volumes:
-      - /home/falcon/skytable:/var/lib/skytable
+      - /tmp/ferri-log/skytable:/var/lib/skytable
+        

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use application::prelude::FileSystem;
-use notify::{Config, Event, INotifyWatcher, RecommendedWatcher, RecursiveMode, Watcher};
+use notify::{Config, Event, RecommendedWatcher, RecursiveMode, Watcher};
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use tracing::{error, info};
@@ -19,7 +19,7 @@ pub fn async_watcher() -> notify::Result<(
     Ok((watcher, rx))
 }
 
-pub fn watch_dir<T>(path: &str, fs: Arc<T>) -> Result<INotifyWatcher>
+pub fn watch_dir<T>(path: &str, fs: Arc<T>) -> Result<RecommendedWatcher>
 where
     T: FileSystem + Send + Sync + 'static,
 {
