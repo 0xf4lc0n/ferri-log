@@ -6,20 +6,23 @@ use actix_web::{
 };
 use anyhow::Result;
 use infrastructure::prelude::{PgBlkLstRepo, PgLogRepo};
-use openssl::{
-    ssl::{
-        SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod, SslSessionCacheMode,
-        SslVerifyMode, SslVersion,
-    },
-    x509::{store::X509StoreBuilder, X509},
-};
+use rustls::{Certificate, PrivateKey, ServerConfig};
+use rustls_pemfile::{certs, pkcs8_private_keys};
+//use openssl::{
+//    ssl::{
+//        SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod, SslSessionCacheMode,
+//        SslVerifyMode, SslVersion,
+//    },
+//    x509::{store::X509StoreBuilder, X509},
+//};
 use sqlx::PgPool;
-use std::fs;
+use std::{fs::File, io::BufReader};
+use tracing::info;
 use tracing_actix_web::TracingLogger;
 
 use crate::{
     configuration::Settings,
-    middlewares::{get_client_cert, Auth},
+    //middlewares::{get_client_cert, Auth},
     routes::{
         add_to_blacklist, delete_entry_from_blacklist, get_all_logs, get_blacklist,
         get_blacklist_entry_by_id, get_log_by_id, get_logs_by_filter, health_check,
@@ -30,7 +33,7 @@ pub fn run(address: String, db_pool: PgPool, settings: &Settings) -> Result<Serv
     let log_repo = Data::new(PgLogRepo::new(db_pool.clone()));
     let blacklist = Data::new(PgBlkLstRepo::new(db_pool));
 
-    let ssl_builder = setup_certificate_auth(settings)?;
+    let cfg = load_rustls_config(settings);
 
     let governor_conf = GovernorConfigBuilder::default()
         .per_second(settings.application.one_request_replenishment_time)
@@ -42,7 +45,7 @@ pub fn run(address: String, db_pool: PgPool, settings: &Settings) -> Result<Serv
         App::new()
             .wrap(TracingLogger::default())
             .wrap(Governor::new(&governor_conf))
-            .wrap(Auth)
+            //.wrap(Auth)
             .route("/health_check", web::get().to(health_check))
             .route("/logs/blacklist", web::post().to(add_to_blacklist))
             .route("/logs/blacklist", web::get().to(get_blacklist))
@@ -60,33 +63,67 @@ pub fn run(address: String, db_pool: PgPool, settings: &Settings) -> Result<Serv
             .app_data(log_repo.clone())
             .app_data(blacklist.clone())
     })
-    .on_connect(get_client_cert)
-    .bind_openssl(address, ssl_builder)?
+    //.on_connect(get_client_cert)
+    .bind_rustls_021(address, cfg)?
     .run();
+
+    info!("Ferri-log has started");
 
     Ok(server)
 }
 
-fn setup_certificate_auth(settings: &Settings) -> Result<SslAcceptorBuilder> {
-    let mut builder = SslAcceptor::mozilla_modern(SslMethod::tls())?;
-    builder.set_private_key_file(&settings.certificates.server_key_path, SslFiletype::PEM)?;
-    builder.set_certificate_chain_file(&settings.certificates.server_cert_path)?;
+fn load_rustls_config(settings: &Settings) -> rustls::ServerConfig {
+    // init server config builder with safe defaults
+    let config = ServerConfig::builder()
+        .with_safe_defaults()
+        .with_no_client_auth();
 
-    let ca_cert = fs::read_to_string(&settings.certificates.ca_cert_path)?.into_bytes();
+    // load TLS key/cert files
+    let cert_file =
+        &mut BufReader::new(File::open(&settings.certificates.server_cert_path).unwrap());
+    let key_file = &mut BufReader::new(File::open(&settings.certificates.server_key_path).unwrap());
 
-    let client_ca_cert = X509::from_pem(&ca_cert)?;
-    let mut x509_client_store_builder = X509StoreBuilder::new()?;
-    x509_client_store_builder.add_cert(client_ca_cert)?;
-    let client_cert_store = x509_client_store_builder.build();
-    builder.set_verify_cert_store(client_cert_store)?;
+    // convert files to key/cert objects
+    let cert_chain = certs(cert_file)
+        .map(|c| c.unwrap().to_vec())
+        .map(Certificate)
+        .collect();
 
-    let mut verify_mode = SslVerifyMode::empty();
-    verify_mode.set(SslVerifyMode::PEER, true);
-    builder.set_verify(verify_mode);
+    let mut keys: Vec<PrivateKey> = pkcs8_private_keys(key_file)
+        .map(|k| k.unwrap().secret_pkcs8_der().to_vec())
+        .map(PrivateKey)
+        .collect();
 
-    builder.set_session_cache_mode(SslSessionCacheMode::OFF);
-    let min_ssl_verion = Some(SslVersion::TLS1_2);
-    builder.set_min_proto_version(min_ssl_verion)?;
+    // exit if no keys could be parsed
+    if keys.is_empty() {
+        eprintln!("Could not locate PKCS 8 private keys.");
+        std::process::exit(1);
+    }
 
-    Ok(builder)
+    config.with_single_cert(cert_chain, keys.remove(0)).unwrap()
 }
+
+//fn setup_certificate_auth(settings: &Settings) -> Result<SslAcceptorBuilder> {
+//    let mut builder = SslAcceptor::mozilla_modern(SslMethod::tls())?;
+//    builder.set_private_key_file(&settings.certificates.server_key_path, SslFiletype::PEM)?;
+//    builder.set_certificate_chain_file(&settings.certificates.server_cert_path)?;
+//
+//    let ca_cert = fs::read_to_string(&settings.certificates.ca_cert_path)?.into_bytes();
+//
+//    let client_ca_cert = X509::from_pem(&ca_cert)?;
+//    let mut x509_client_store_builder = X509StoreBuilder::new()?;
+//    x509_client_store_builder.add_cert(client_ca_cert)?;
+//    let client_cert_store = x509_client_store_builder.build();
+//    builder.set_verify_cert_store(client_cert_store)?;
+//
+//    let mut verify_mode = SslVerifyMode::empty();
+//    verify_mode.set(SslVerifyMode::PEER, true);
+//    builder.set_verify(verify_mode);
+//
+//    builder.set_session_cache_mode(SslSessionCacheMode::OFF);
+//    let min_ssl_verion = Some(SslVersion::TLS1_2);
+//    builder.set_min_proto_version(min_ssl_verion)?;
+//
+//    Ok(builder)
+//}
+//

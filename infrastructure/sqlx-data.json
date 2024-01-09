@@ -1,0 +1,297 @@
+{
+  "db": "PostgreSQL",
+  "01cf4212a09bb33be001bf12b9c7fc46a82d47ba5df8ac1547051e84013909ed": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "facility",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "source",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "message",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT * FROM blacklist"
+  },
+  "2fed7b337763e2ea0cf68d6b515190e71d1b7763198d3481dad53ed991b1b8bb": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "facility",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "source",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "message",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT * FROM blacklist WHERE source = $1 AND facility = $2 AND message = $3"
+  },
+  "48bc8f2700c6eb73da81e0aa04f8e4e6aec1d537ca2ec39fb8488cf0f5e8f46e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "facility",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "source",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "message",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "SELECT * FROM blacklist WHERE id = $1"
+  },
+  "7e50e753e759785cb2410866e60b916a78561512db011a517fc8c4d2374b8bdf": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO blacklist (id, facility, source, message)\n            VALUES ($1, $2, $3, $4)\n            "
+  },
+  "805c2bf5ee23ea888169bad8e90330c8d482bd072e6327b403bdaf6dbdcd210e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "host",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "severity",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "facility",
+          "ordinal": 4,
+          "type_info": "Text"
+        },
+        {
+          "name": "syslog_tag",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "source",
+          "ordinal": 6,
+          "type_info": "Text"
+        },
+        {
+          "name": "message",
+          "ordinal": 7,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT * FROM logs"
+  },
+  "b3fd3a1e14e93e1dcae3a5ed98fed760502882384b45d7069373678ae0c86a49": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Timestamptz",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO logs (id, timestamp, host, severity, facility, syslog_tag, source, message)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n            "
+  },
+  "bba1b6a4bebffb150b1336b67afe8c93a7c34b66abb7b882c56856e7caf4596d": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "DELETE FROM logs WHERE id = $1"
+  },
+  "c32b734de6141683f89b53879e37c8428a70bd4a8b5bbbe8e1b7c1069af99cdf": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "host",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "severity",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "facility",
+          "ordinal": 4,
+          "type_info": "Text"
+        },
+        {
+          "name": "syslog_tag",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "source",
+          "ordinal": 6,
+          "type_info": "Text"
+        },
+        {
+          "name": "message",
+          "ordinal": 7,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "SELECT * FROM logs WHERE id = $1"
+  },
+  "d0e0b94f680bf76a8ed4173c0ff00001616abf72cf4c2e66fd6dc57eff7b2e35": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "DELETE FROM blacklist WHERE id = $1"
+  }
+}

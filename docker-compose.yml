@@ -1,5 +1,16 @@
 version: "3.9"
 services:
+  ferri-log-server:
+    hostname: Ra
+    image: ferri-log-srv
+    ports:
+      - 8443:8443
+  rsyslog-clt-1:
+    hostname: Horus
+    image: rsyslog-clt
+  rsyslog-clt-2:
+    hostname: Ozyrys
+    image: rsyslog-clt
   persistence-db:
     image: postgres
     ports:
@@ -15,4 +26,3 @@ services:
     container_name: mysky
     volumes:
       - /tmp/ferri-log/skytable:/var/lib/skytable
-        
